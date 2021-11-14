@@ -1,15 +1,16 @@
 import socket
-import datetime
 import mysql.connector
+from setup import *
 
-db = mysql.connector.connect(user='root', password='',
+db = mysql.connector.connect(user=USER, password=PWD,
                               host='127.0.0.1',
-                              database='messages')
+                              port=DB_PORT,
+                              database=DB_NAME)
 
 cursor = db.cursor()
 
-host = '192.168.56.1'
-port = 8080
+host = HOST
+port = 8002
 isAuthorized = bytearray([0])
 isUserInDB = bytearray([0])
 
@@ -42,9 +43,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         while True and isAuthorized == b'\x01':
             message = conn.recv(1024)
             message = message.decode()
-            currentTime = datetime.datetime.now()
-            query = "INSERT INTO messages (message, timeOfRecv) VALUES(%s, %s)"
-            cursor.execute(query, (message, currentTime))
+            query = "INSERT INTO messages (message) VALUES(%s)"
+            cursor.execute(query, (message))
             db.commit()
             conn.sendall(b'Message was sent to the Data Base')
             if not message:

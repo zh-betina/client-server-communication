@@ -1,16 +1,11 @@
 import socket
-import base64
+from setup import HOST
 
-host = '192.168.56.1'
-port = 8080
+host = HOST
+port = 8002
 
 amIauthorized = bytearray([0])
 option = 3
-
-def encryptPwd(pwd):
-    pwd = pwd.encode("utf-8")
-    encoded = base64.b64encode(pwd)
-    return encoded
 
 def menuChoice():
     option = input('Menu: \n 0  -- Create account \n 1  -- Login \n 2  --  Quit \n ~ ')
