@@ -2,7 +2,7 @@ import socket
 from setup import HOST
 
 host = HOST
-port = 8002
+port = 8011
 
 amIauthorized = bytearray([0])
 option = 3
@@ -11,23 +11,24 @@ def menuChoice():
     option = input('Menu: \n 0  -- Create account \n 1  -- Login \n 2  --  Quit \n ~ ')
     return option
 
+def request(msg):
+    req = input(f'{msg}')
+    req = str.encode(req)
+    sock.sendall(req)
+    res = sock.recv(1024)
+    return res
+    
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.connect((host, port))
     while option != "2":
         option = menuChoice()
         if option == "1":
             while amIauthorized == b'\x00':
-                username = input("Please, insert your username: ~ ")
-                username = str.encode(username)
-                sock.sendall(username)
-                response = sock.recv(1024)
+                response = request("Please, insert your username: ~ ")
                 if response == b'\x01':
-                    password = input("Please, insert your password: ~ ")
-                    password = str.encode(password)
-                    sock.sendall(password)
-                    resp = sock.recv(1024)
-                    if resp == b'\x01':
-                        amIauthorized = resp
+                    res = request("Please, insert your password: ~ ")
+                    if res == b'\x01':
+                        amIauthorized = res
                         print('You are logged in')
                         option = "2"
                 else:

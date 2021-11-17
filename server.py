@@ -10,9 +10,10 @@ db = mysql.connector.connect(user=USER, password=PWD,
 cursor = db.cursor()
 
 host = HOST
-port = 8002
+port = 8011
 isAuthorized = bytearray([0])
 isUserInDB = bytearray([0])
+authorizedUser = ""
 
 def receiveReq():
     res = conn.recv(1024)
@@ -26,6 +27,22 @@ def queryDB(cursor, query):
     dbRes = cursor.fetchall()
     return dbRes
 
+def login():
+    query = 'SELECT * FROM `users` WHERE username = "%s"'
+    dbResponse = queryDB(cursor, query)
+    if len(dbResponse) > 0:
+        isUserInDB = bytearray([1])
+        conn.sendall(isUserInDB)
+        if isUserInDB == b'\x01':
+            query = 'SELECT * FROM `users` WHERE password = "%s"'
+            dbResponse = queryDB(cursor, query)
+            if len(dbResponse) > 0:
+                isAuthorized = bytearray([1])
+                authorizedUser = dbResponse[0][0]
+                conn.sendall(isAuthorized)
+                return authorizedUser
+                
+
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.bind((host, port))
     sock.listen(1)
@@ -33,28 +50,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     with conn:
         print('connected by: ', addr)
         while isUserInDB == b'\x00':
-            query = 'SELECT * FROM `users` WHERE username = "%s"'
-            dbResponse = queryDB(cursor, query)
-            if len(dbResponse) > 0:
-                isUserInDB = bytearray([1])
-                conn.sendall(isUserInDB)
-                if isUserInDB == b'\x01':
-                    #password = conn.recv(1024)
-                    #password = password.decode()
-                    query = 'SELECT * FROM `users` WHERE password = "%s"'
-                    dbResponse = queryDB(cursor, query)
-                    if len(dbResponse) > 0:
-                        print("PWD found")
-                        isAuthorized = bytearray([1])
-                        conn.sendall(isAuthorized)
-            conn.sendall(isUserInDB)
-        #db.commit()
-        while True and isAuthorized == b'\x01':
+            authorizedUser = login()
+            isAuthorized = b'\x01' if authorizedUser > 0 else b'\x00'
+            isUserInDB = isAuthorized if isAuthorized == b'\x01' else b'\x00'
+            #conn.sendall(isUserInDB)
+        while isAuthorized == b'\x01':
             message = conn.recv(1024)
             message = message.decode()
-            query = "INSERT INTO messages (message) VALUES(%s)"
-            cursor.execute(query, (message))
-            db.commit()
+            query = "INSERT INTO messages (id_user, message, ip) VALUES(%d, %s, %s)" % (authorizedUser, message, addr)
+            cursor.execute(query)
+            #db.commit()
             conn.sendall(b'Message was sent to the Data Base')
             if not message:
                 sock.close()
