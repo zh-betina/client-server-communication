@@ -14,6 +14,18 @@ port = 8002
 isAuthorized = bytearray([0])
 isUserInDB = bytearray([0])
 
+def receiveReq():
+    res = conn.recv(1024)
+    res = res.decode()
+    return res
+    
+def queryDB(cursor, query):
+    userReq = receiveReq()
+    query = query %userReq
+    cursor.execute(query)
+    dbRes = cursor.fetchall()
+    return dbRes
+
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.bind((host, port))
     sock.listen(1)
@@ -21,21 +33,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     with conn:
         print('connected by: ', addr)
         while isUserInDB == b'\x00':
-            username = conn.recv(1024)
-            username = username.decode()
-            query = f'SELECT * FROM `users` WHERE username = "{username}"'
-            cursor.execute(query)
-            dbResponse = cursor.fetchall()
+            query = 'SELECT * FROM `users` WHERE username = "%s"'
+            dbResponse = queryDB(cursor, query)
             if len(dbResponse) > 0:
                 isUserInDB = bytearray([1])
                 conn.sendall(isUserInDB)
                 if isUserInDB == b'\x01':
-                    password = conn.recv(1024)
-                    password = password.decode()
-                    query = f'SELECT * FROM `users` WHERE password = "{password}"'
-                    cursor.execute(query)
-                    dbRes = cursor.fetchall()
-                    if len(dbRes) > 0:
+                    #password = conn.recv(1024)
+                    #password = password.decode()
+                    query = 'SELECT * FROM `users` WHERE password = "%s"'
+                    dbResponse = queryDB(cursor, query)
+                    if len(dbResponse) > 0:
+                        print("PWD found")
                         isAuthorized = bytearray([1])
                         conn.sendall(isAuthorized)
             conn.sendall(isUserInDB)
