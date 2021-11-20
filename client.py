@@ -2,7 +2,7 @@ import socket
 from setup import HOST
 
 host = HOST
-port = 8011
+port = 8085
 
 amIauthorized = bytearray([0])
 option = 3
@@ -40,7 +40,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         message = str.encode(message)
         sock.sendall(message)
         response = sock.recv(1024)
-        print(f'{response}')
+        print(response)
 
     
 

@@ -10,7 +10,7 @@ db = mysql.connector.connect(user=USER, password=PWD,
 cursor = db.cursor()
 
 host = HOST
-port = 8011
+port = 8085
 isAuthorized = bytearray([0])
 isUserInDB = bytearray([0])
 authorizedUser = ""
@@ -23,6 +23,11 @@ def receiveReq():
 def queryDB(cursor, query):
     userReq = receiveReq()
     query = query %userReq
+    cursor.execute(query)
+    dbRes = cursor.fetchall()
+    return dbRes
+
+def queryDB2(cursor, query):
     cursor.execute(query)
     dbRes = cursor.fetchall()
     return dbRes
@@ -53,13 +58,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             authorizedUser = login()
             isAuthorized = b'\x01' if authorizedUser > 0 else b'\x00'
             isUserInDB = isAuthorized if isAuthorized == b'\x01' else b'\x00'
-            #conn.sendall(isUserInDB)
         while isAuthorized == b'\x01':
             message = conn.recv(1024)
             message = message.decode()
-            query = "INSERT INTO messages (id_user, message, ip) VALUES(%d, %s, %s)" % (authorizedUser, message, addr)
+            query = f'INSERT INTO messages (id_user, message, ip) VALUES({authorizedUser}, "{message}", "{addr[0]}")'
             cursor.execute(query)
-            #db.commit()
+            response = cursor.fetchall()
+            db.commit()
             conn.sendall(b'Message was sent to the Data Base')
             if not message:
                 sock.close()
