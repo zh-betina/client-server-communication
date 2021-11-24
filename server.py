@@ -54,8 +54,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             isAuthorized = b'\x01' if authorizedUser > 0 else b'\x00'
             isUserInDB = isAuthorized if isAuthorized == b'\x01' else b'\x00'
         while isAuthorized == b'\x01':
-            message = conn.recv(1024)
-            message = message.decode()
+            message = receiveReq()
             query = f'INSERT INTO messages (id_user, message, ip) VALUES({authorizedUser}, "{message}", "{addr[0]}")'
             cursor.execute(query)
             response = cursor.fetchall()
