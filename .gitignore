@@ -2,3 +2,4 @@ blabla.py
 infoPersoDB.py
 .env
 setup.py
+__pycache__

@@ -38,7 +38,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     while amIauthorized == b'\x01':
         sendMessage = request("Type your message: ~ ")
         print(sendMessage)
-
-    
-
-        
