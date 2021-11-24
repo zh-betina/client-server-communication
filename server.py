@@ -27,11 +27,6 @@ def queryDB(cursor, query):
     dbRes = cursor.fetchall()
     return dbRes
 
-def queryDB2(cursor, query):
-    cursor.execute(query)
-    dbRes = cursor.fetchall()
-    return dbRes
-
 def login():
     query = 'SELECT * FROM `users` WHERE username = "%s"'
     dbResponse = queryDB(cursor, query)

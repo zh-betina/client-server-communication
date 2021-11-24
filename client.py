@@ -36,11 +36,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         elif option == "0":
             print("Create account")
     while amIauthorized == b'\x01':
-        message = input("Type your message: ~ ")
-        message = str.encode(message)
-        sock.sendall(message)
-        response = sock.recv(1024)
-        print(response)
+        sendMessage = request("Type your message: ~ ")
+        print(sendMessage)
 
     
 
